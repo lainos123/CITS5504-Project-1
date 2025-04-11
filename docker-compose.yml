@@ -1,0 +1,49 @@
+services:
+  pgdb:
+    container_name: pgdb
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: datawarehouse
+    ports:
+      - "5433:5432"
+    volumes:
+
+      - pgdata:/var/lib/postgresql/data
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "5051:80"
+    depends_on:
+      - pgdb
+
+  etl:
+    build: .
+    depends_on:
+      - pgdb
+    environment:
+      DB_HOST: pgdb
+      DB_PORT: 5432
+      DB_NAME: datawarehouse
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+    command: ["python", "scripts/etl_process.py"]
+    volumes:
+      - ./data:/app/data  # Mounting the host directory to container
+
+  association_rules:
+    build: .
+    depends_on:
+      - pgdb
+    volumes:
+      - ./data:/app/data
+      - ./association_rules/results:/app/association_rules/results
+    command: ["python", "association_rules/association_rule_mining.py"]
+    
+volumes:
+  pgdata:

@@ -1,0 +1,7 @@
+ipykernel
+pandas
+numpy
+sqlalchemy
+openpyxl
+psycopg2-binary
+mlxtend==0.22.0
